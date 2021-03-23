@@ -141,7 +141,7 @@ int main()
 	int l2 = readBigNumber(num2,256,testFile);
 
 	multRange(num1,num2,product,0,l1 - 1,l1,l2);
-	carryRange(product,0,l1+l2,l1+l2);
+	carryRange(product,0,l1+l2-1,l1+l2);
 
 	printBigNumber(num1,l1);
 	printBigNumber(num2,l2);
