@@ -84,7 +84,10 @@ int readBigNumber(int buffer [], int bufferSize, FILE * input){
 
 
 void printBigNumber(int buffer [], int numL) {
+	bool foundBeg = false;
 	for(int x = 0; x < numL; x++){
+
+		if(x != 0 && buffer[x] != 0)
 		cout << buffer[x];
 	}
 	cout << endl;
