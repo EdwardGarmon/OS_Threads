@@ -10,9 +10,9 @@
 // by a binary semaphore.
 // ***********************************************************************
 
-#include <pthread.h>
+//#include <pthread.h>
 #include <iostream>
-#include <semaphore.h>
+//#include <semaphore.h>
 #include <unistd.h>
 
 using namespace std;
@@ -25,16 +25,16 @@ const int UPPER = 100; // Number of times the counter is incremented by
 
 // Global variables
 
-int counter = 0;        // variable to be incremented by each thread 
-sem_t semaphore;	      // global semaphore, used for mutual exclusion
-pthread_t tid[ MAX ];   // array of thread identifiers
+//int counter = 0;        // variable to be incremented by each thread 
+//sem_t semaphore;	      // global semaphore, used for mutual exclusion
+//pthread_t tid[ MAX ];   // array of thread identifiers
 
 // ***********************************************************************
 // Function that each thread will execute.  If the semaphores work
 // properly, then the function will effectively do, count += UPPER.
 // ***********************************************************************
 
-void *
+/*void *
 increment( void *arg )
 {
 	// Parameter passed is the thread number.  Since the parameter could be 
@@ -59,7 +59,7 @@ increment( void *arg )
 
 	cout << "Thread " << id << " is ending!" << endl;
 	return NULL;
-}
+}*/
 
 // ***********************************************************************
 // The main program:
@@ -90,6 +90,35 @@ void printBigNumber(int buffer [], int numL) {
 	cout << endl;
 }
 
+void multRange(int num1[],int num2[] ,int product[] , int l, int h , int len1, int len2){
+
+	for(int i = h; i >= l;  i--){
+
+		for(int x = len2 - 1; x >= 0; x--){
+
+			product[i+x + 1] += num1[i] * num2[x];
+
+		}
+
+	}
+
+}
+
+
+void carryRange(int product[] , int l, int h , int len){
+
+	for(int i = h; i >= l ; i--){
+
+		if(i - 1 >= 0) product[i-1] += product[i] / 10;
+
+		product[i] %= 10;
+
+	}
+
+}
+
+
+
 int main()
 {
 	int i, no_threads;
@@ -108,9 +137,8 @@ int main()
 	int l1 = readBigNumber(num1,256,testFile);
 	int l2 = readBigNumber(num2,256,testFile);
 
-
-
-
+	multRange(num1,num2,product,0,l1 - 1,l1,l2);
+	carryRange(product,0,l1+l2,l1+l2);
 
 	printBigNumber(num1,l1);
 	printBigNumber(num2,l2);
