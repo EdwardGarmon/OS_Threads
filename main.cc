@@ -10,6 +10,7 @@
 // by a binary semaphore.
 // ***********************************************************************
 
+#include <thread>
 #include <pthread.h>
 #include <iostream>
 #include <fstream>
@@ -61,14 +62,12 @@ void printBigNumber(int buffer[], int numL)
 
 void addPartialSum(int partial_sum[])
 {
-    printBigNumber(partial_sum, l1+l2);
     for (int i = l1+l2-1; i >= 0; i--) {
         product[i+1] += partial_sum[i+1];
         product[i] += product[i+1] / 10;
         product[i+1] %= 10;
     }
     product[0] += partial_sum[0];
-    printBigNumber(product, l1+l2);
 }
 
 void multRange(int partial_sum[], int digit1, int id)
@@ -80,7 +79,11 @@ void multRange(int partial_sum[], int digit1, int id)
         partial_sum[digit1 + digit2 + 1] += num1[digit1] * num2[digit2];
         partial_sum[digit1 + digit2] += partial_sum[digit1 + digit2 + 1] / 10;
         partial_sum[digit1 + digit2 + 1] %= 10;
+
     }
+
+
+	
     // sem_post(&semaphore);
 }
 
@@ -108,8 +111,6 @@ void *threadMultiply(void *arg)
         }
         counter--; // Move to the next digit
         sem_post(&semaphore);
-
-        cout << "thread " << id << " beginning work " << work_counter << endl;
         multRange(partial_sum, work_counter, id);
     }
 }
@@ -117,18 +118,21 @@ void *threadMultiply(void *arg)
 int main()
 {
     int i, no_threads;
+	char n[100];
 
-    ifstream infile("./test.txt");
     FILE *file = fopen("./test.txt", "r");
+
+	fgets(n,100,file);
+	char *end;
+	no_threads = strtol(n,&end,10);
 
     l1 = readBigNumber(num1, 256, file);
     l2 = readBigNumber(num2, 256, file);
+
     counter = l2 - 1;
 
     printBigNumber(num1, l1);
     printBigNumber(num2, l2);
-
-    no_threads = getc(file) - 48;
 
     cout << no_threads << " no of threads" << endl;
 
@@ -137,6 +141,9 @@ int main()
         cout << "Invalid thread count -- defaulting to 4" << endl;
         no_threads = 4;
     }
+
+
+    auto t1 = chrono::high_resolution_clock::now();
 
     sem_init(&semaphore, 0, 1);
 
@@ -149,8 +156,18 @@ int main()
         addPartialSum(partial_sum);
     }
 
+
+	auto t2 = chrono::high_resolution_clock::now();
+
     printBigNumber(product, l1 + l2);
-    printBigNumber(credit, l1 + l2);
+    printBigNumber(credit, l1);
+
+
+
+	chrono::duration<double,milli> ms = t2 - t1;
+
+	cout << "took " << ms.count() << " ms" << endl;
+
 
     return 0;
 }
