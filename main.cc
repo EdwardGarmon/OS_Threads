@@ -65,18 +65,22 @@ void multRange(int num1[], int num2[], int product[], int i, int len2, int id)
 {
 	credit[i] = id;
 
-	for (int x = len2 - 1; x >= 0; x--)
-	{
-		product[i + x + 1] += num1[i] * num2[x];
-		/*
-		if (product[i + x + 1] >= 10)
-		{
-			product[i + x] += product[i + x + 1] / 10;
-			product[i + x + 1] %= 10;
-		}
-		*/
+	for(int x = 0; x < len2; x++){
+
+		product[i+x + 1]  += num1[i] * num2[x];
+
 	}
+
 }
+
+
+void carry(int product [], int index){
+	sem_wait(&semaphore);
+	product[index - 1] += product[index] / 10;
+	product[index] %= 10;
+	sem_post(&semaphore);
+}
+
 
 void *threadMultiply(void *arg)
 {
@@ -106,6 +110,36 @@ void *threadMultiply(void *arg)
 		multRange(num1, num2, product, work_counter, l2, id);
 	}
 }
+
+void *threadCarry(void *arg)
+{
+
+	int id = (long)arg;
+
+	int work_counter;
+
+	while (true)
+	{
+
+		sem_wait(&semaphore);
+
+		work_counter = counter;
+		
+
+		if (counter == -1)
+		{
+			sem_post(&semaphore);
+			return NULL;
+		}
+
+		counter--;
+		sem_post(&semaphore);
+
+		cout << "thread " << id << " beginning work " << work_counter << endl;
+		carry(product,work_counter);
+	}
+}
+
 
 int main()
 {
@@ -137,6 +171,18 @@ int main()
 
 	for (i = 0; i < no_threads; i++)
 		pthread_join(tid[i], NULL);
+
+	printBigNumber(product, l1 + l2);
+
+	counter = l1 + l2;
+
+	for (i = 0; i < no_threads; i++)
+		pthread_create(&tid[i], NULL, threadCarry, (void *)i);
+
+	for (i = 0; i < no_threads; i++)
+		pthread_join(tid[i], NULL);
+	
+
 
 	printBigNumber(product, l1 + l2);
 	printBigNumber(credit, l1 + l2);
