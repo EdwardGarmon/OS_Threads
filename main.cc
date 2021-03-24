@@ -11,10 +11,12 @@
 // ***********************************************************************
 
 #include <pthread.h>
+#include <thread>
 #include <iostream>
 #include <fstream>
 #include <semaphore.h>
 #include <unistd.h>
+#include <chrono> 
 
 using namespace std;
 
@@ -52,7 +54,7 @@ int readBigNumber(int buffer[], int bufferSize, FILE *input)
 
 void printBigNumber(int buffer[], int numL)
 {
-	bool foundBeg = false;
+
 	for (int x = 0; x < numL; x++)
 	{
 
@@ -62,23 +64,27 @@ void printBigNumber(int buffer[], int numL)
 }
 
 void multRange(int num1[], int num2[], int product[], int i, int len2, int id)
-{
+{	
+
 	credit[i] = id;
+
 
 	for(int x = 0; x < len2; x++){
 
 		product[i+x + 1]  += num1[i] * num2[x];
-
+		
 	}
+
+	this_thread::sleep_for(chrono::milliseconds(1));
 
 }
 
 
 void carry(int product [], int index){
-	sem_wait(&semaphore);
+	
 	product[index - 1] += product[index] / 10;
 	product[index] %= 10;
-	sem_post(&semaphore);
+	
 }
 
 
@@ -88,6 +94,7 @@ void *threadMultiply(void *arg)
 	int id = (long)arg;
 
 	int work_counter;
+
 
 	while (true)
 	{
@@ -106,7 +113,7 @@ void *threadMultiply(void *arg)
 		counter++;
 		sem_post(&semaphore);
 
-		cout << "thread " << id << " beginning work " << work_counter << endl;
+
 		multRange(num1, num2, product, work_counter, l2, id);
 	}
 }
@@ -135,7 +142,7 @@ void *threadCarry(void *arg)
 		counter--;
 		sem_post(&semaphore);
 
-		cout << "thread " << id << " beginning work " << work_counter << endl;
+	
 		carry(product,work_counter);
 	}
 }
@@ -145,8 +152,15 @@ int main()
 {
 	int i, no_threads;
 
-	ifstream infile("./test.txt");
+	char n[100];
+	
 	FILE *file = fopen("./test.txt", "r");
+
+	fgets(n,100,file);
+	
+	char *end;
+	no_threads = strtol(n,&end,10);
+
 
 	l1 = readBigNumber(num1, 256, file);
 	l2 = readBigNumber(num2, 256, file);
@@ -154,16 +168,17 @@ int main()
 	printBigNumber(num1, l1);
 	printBigNumber(num2, l2);
 
-	no_threads = getc(file) - 48;
 
+	fread(&no_threads,sizeof(int),1,file);
+	
 	cout << no_threads << " no of threads" << endl;
-
+	
 	if ((no_threads <= 0) || (no_threads >= MAX))
 	{
 		cout << "Invalid thread count -- defaulting to 4" << endl;
 		no_threads = 4;
 	}
-
+	
 	sem_init(&semaphore, 0, 1);
 
 	for (i = 0; i < no_threads; i++)
@@ -172,7 +187,6 @@ int main()
 	for (i = 0; i < no_threads; i++)
 		pthread_join(tid[i], NULL);
 
-	printBigNumber(product, l1 + l2);
 
 	counter = l1 + l2;
 
@@ -182,10 +196,8 @@ int main()
 	for (i = 0; i < no_threads; i++)
 		pthread_join(tid[i], NULL);
 	
-
-
 	printBigNumber(product, l1 + l2);
-	printBigNumber(credit, l1 + l2);
+	printBigNumber(credit, l1);
 
 	return 0;
 }
