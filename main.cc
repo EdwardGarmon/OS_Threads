@@ -1,14 +1,13 @@
-// ***********************************************************************
-// Example of use of pthreads library.
-//
-// Save this program in "m.cc", then compile using:
-//    g++ m.cc -lpthread
-// To execute, run the associated "a.out" file (or specify executable on
-// the -o option).  The program will prompt for the number of threads to
-// create.  Each thread will then increment a counter UPPER times.  The
-// counter is global, i.e., shared, and so the access to it is protected
-// by a binary semaphore.
-// ***********************************************************************
+/*
+    OS project 1
+
+    Johnathan Hocevar
+    Edward Garmon
+    Donovan Sip
+
+
+*/
+
 
 #include <thread>
 #include <pthread.h>
@@ -180,9 +179,7 @@ int main(int argc, char * argv[])
             no_threads = 4;
         }
 
-        //start the timer
-        auto t1 = chrono::high_resolution_clock::now();
-
+    
         sem_init(&semaphore, 0, 1);
 
         for (i = 0; i < no_threads; i++)
@@ -194,17 +191,13 @@ int main(int argc, char * argv[])
             addPartialSum(partial_sum);
         }
 
-        //end the timer
-        auto t2 = chrono::high_resolution_clock::now();
+  
 
         printBigNumber(product, l1 + l2,&out);
         //printBigNumber(credit, l1,&cout);
 
-        //convert time to milliseconds
-        chrono::duration<double,milli> ms = t2 - t1;
 
-        //display how long it took
-        cout << "took " << ms.count() << " ms" << endl;
+
         
     }
 
