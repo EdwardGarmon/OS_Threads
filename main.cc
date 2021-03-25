@@ -8,8 +8,6 @@
 
 */
 
-
-#include <thread>
 #include <pthread.h>
 #include <iostream>
 #include <fstream>
@@ -108,7 +106,7 @@ void *threadMultiply(void *arg)
     for(int i = 0; i < 512; i++){
         partial_sum[i] = 0;
     }
-    
+
     // Provide an infinite loop for the thread to check if there is work
     while (true)
     {
@@ -195,14 +193,10 @@ int main(int argc, char * argv[])
             addPartialSum(partial_sum);
         }
 
-  
 
         printBigNumber(product, l1 + l2,&out);
         //printBigNumber(credit, l1,&cout);
 
-
-
-        
     }
 
     out.close();
