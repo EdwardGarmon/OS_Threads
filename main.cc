@@ -64,6 +64,8 @@ void printBigNumber(int buffer[], int numL, ostream * out)
     *out << endl;
 }
 
+
+//Johnathan's ideas to do partial summing
 void addPartialSum(int partial_sum[])
 {
     for (int i = l1+l2-1; i >= 0; i--) {
@@ -74,6 +76,7 @@ void addPartialSum(int partial_sum[])
     product[0] += partial_sum[0];
 }
 
+//Edward's idea to use for loop across the other num
 void multRange(int partial_sum[], int digit1, int id)
 {
     credit[digit1] = id;
@@ -143,7 +146,7 @@ int main(int argc, char * argv[])
 
     while(!file.eof()){
         
-        
+        //clear product in between reading inputs
         if(l1 + l1 > 0){
 
             for(int i = 0; i < l1+l2; i++){
@@ -152,15 +155,18 @@ int main(int argc, char * argv[])
 
         }
         
-
+        //read in number of threads
         file >> no_threads;
         file.ignore();
 
+        //get around bad number parsing
         if(file.eof()) break;
 
+        //read in two big numbers
         l1 = readBigNumber(num1, 256, &file);
         l2 = readBigNumber(num2, 256, &file);
 
+        //display size of numbers
         cout << l1 << " size of num 1"<< endl;
         cout << l2 << " size of num 2" << endl;
 
@@ -174,7 +180,7 @@ int main(int argc, char * argv[])
             no_threads = 4;
         }
 
-
+        //start the timer
         auto t1 = chrono::high_resolution_clock::now();
 
         sem_init(&semaphore, 0, 1);
@@ -188,16 +194,16 @@ int main(int argc, char * argv[])
             addPartialSum(partial_sum);
         }
 
-
+        //end the timer
         auto t2 = chrono::high_resolution_clock::now();
 
-        int pSize = l2 + l1;
-
         printBigNumber(product, l1 + l2,&out);
-        printBigNumber(credit, l1,&cout);
+        //printBigNumber(credit, l1,&cout);
 
+        //convert time to milliseconds
         chrono::duration<double,milli> ms = t2 - t1;
 
+        //display how long it took
         cout << "took " << ms.count() << " ms" << endl;
         
     }
