@@ -103,8 +103,12 @@ void *threadMultiply(void *arg)
 
     int work_counter; // an "offset" for which digit we are calculating
 
-    int* partial_sum = new int[512]{0};
+    int* partial_sum = new int[512];
 
+    for(int i = 0; i < 512; i++){
+        partial_sum[i] = 0;
+    }
+    
     // Provide an infinite loop for the thread to check if there is work
     while (true)
     {
