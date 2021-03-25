@@ -31,33 +31,37 @@ int num2[256];
 int product[512];
 int credit[256];  // Stores which thread calculated which digit
 
-int l2; // Length of number 2
-int l1; // Length of number 1
+int l2 = 0; // Length of number 2
+int l1 = 0; // Length of number 1
 int counter;    // variable to be decremented by each thread (will start at l2)
 
 // Reads a big number from a file given
-int readBigNumber(int buffer[], int bufferSize, FILE *input)
-{
-    int read = getc(input);
-    int p = 0;
-    for (p = 0; p < 256 && read != '\n' && read != -1; p++)
-    {
+int readBigNumber(int buf [] , int len, istream * in){
 
-        buffer[p] = read - 48;
-        read = getc(input);
+    char num; 
+    int p = 0;
+    in->get(num);
+    while(num != '\n' && in->good() && p < len){
+        
+        buf[p] = (int)(num) - 48;
+        p++;
+        in->get(num);
     }
+
     return p;
 }
 
 // Prints a number stored in a n array given its length as well
-void printBigNumber(int buffer[], int numL)
+void printBigNumber(int buffer[], int numL, ostream * out)
 {
-    bool foundBeg = false;
+    cout << "printing number size " << numL << endl;
     for (int x = 0; x < numL; x++)
-    {
-        cout << buffer[x];
+    {       
+        if(x == 0 && buffer[x] == 0) continue;
+        *out << buffer[x];
+
     }
-    cout << endl;
+    *out << endl;
 }
 
 void addPartialSum(int partial_sum[])
@@ -73,13 +77,16 @@ void addPartialSum(int partial_sum[])
 void multRange(int partial_sum[], int digit1, int id)
 {
     credit[digit1] = id;
+
+  
+
     // sem_wait(&semaphore);
     for (int digit2 = l1 - 1; digit2 >= 0; digit2--)
-    {
+    {   
         partial_sum[digit1 + digit2 + 1] += num1[digit1] * num2[digit2];
         partial_sum[digit1 + digit2] += partial_sum[digit1 + digit2 + 1] / 10;
         partial_sum[digit1 + digit2 + 1] %= 10;
-
+        
     }
 
 
@@ -94,7 +101,7 @@ void *threadMultiply(void *arg)
 
     int work_counter; // an "offset" for which digit we are calculating
 
-    int* partial_sum = new int[256]{0};
+    int* partial_sum = new int[512]{0};
 
     // Provide an infinite loop for the thread to check if there is work
     while (true)
@@ -115,59 +122,88 @@ void *threadMultiply(void *arg)
     }
 }
 
-int main()
-{
+int main(int argc, char * argv[])
+{   
+
+    if(argc == 1){
+        cout << "input an input file name" << endl;
+        return -1 ;
+    }
+
+    char * fileName = argv[1];
+
+
+
     int i, no_threads;
 	char n[100];
 
-    FILE *file = fopen("./test.txt", "r");
+    ifstream file(fileName);
+    ofstream out("output.txt");
 
-	fgets(n,100,file);
-	char *end;
-	no_threads = strtol(n,&end,10);
 
-    l1 = readBigNumber(num1, 256, file);
-    l2 = readBigNumber(num2, 256, file);
+    while(!file.eof()){
+        
+        
+        if(l1 + l1 > 0){
 
-    counter = l2 - 1;
+            for(int i = 0; i < l1+l2; i++){
+                product[i] = 0;
+            }
 
-    printBigNumber(num1, l1);
-    printBigNumber(num2, l2);
+        }
+        
 
-    cout << no_threads << " no of threads" << endl;
+        file >> no_threads;
+        file.ignore();
 
-    if ((no_threads <= 0) || (no_threads >= MAX))
-    {
-        cout << "Invalid thread count -- defaulting to 4" << endl;
-        no_threads = 4;
+        if(file.eof()) break;
+
+        l1 = readBigNumber(num1, 256, &file);
+        l2 = readBigNumber(num2, 256, &file);
+
+        cout << l1 << " size of num 1"<< endl;
+        cout << l2 << " size of num 2" << endl;
+
+        counter = l2;
+
+        cout << no_threads << " no of threads" << endl;
+
+        if ((no_threads <= 0) || (no_threads >= MAX))
+        {
+            cout << "Invalid thread count -- defaulting to 4" << endl;
+            no_threads = 4;
+        }
+
+
+        auto t1 = chrono::high_resolution_clock::now();
+
+        sem_init(&semaphore, 0, 1);
+
+        for (i = 0; i < no_threads; i++)
+            pthread_create(&tid[i], NULL, threadMultiply, (void *)i);
+
+        int* partial_sum;
+        for (i = 0; i < no_threads; i++) {
+            pthread_join(tid[i], (void **)&partial_sum);
+            addPartialSum(partial_sum);
+        }
+
+
+        auto t2 = chrono::high_resolution_clock::now();
+
+        int pSize = l2 + l1;
+
+        printBigNumber(product, l1 + l2,&out);
+        printBigNumber(credit, l1,&cout);
+
+        chrono::duration<double,milli> ms = t2 - t1;
+
+        cout << "took " << ms.count() << " ms" << endl;
+        
     }
 
-
-    auto t1 = chrono::high_resolution_clock::now();
-
-    sem_init(&semaphore, 0, 1);
-
-    for (i = 0; i < no_threads; i++)
-        pthread_create(&tid[i], NULL, threadMultiply, (void *)i);
-
-    int* partial_sum;
-    for (i = 0; i < no_threads; i++) {
-        pthread_join(tid[i], (void **)&partial_sum);
-        addPartialSum(partial_sum);
-    }
-
-
-	auto t2 = chrono::high_resolution_clock::now();
-
-    printBigNumber(product, l1 + l2);
-    printBigNumber(credit, l1);
-
-
-
-	chrono::duration<double,milli> ms = t2 - t1;
-
-	cout << "took " << ms.count() << " ms" << endl;
-
+    out.close();
+    file.close();
 
     return 0;
 }
