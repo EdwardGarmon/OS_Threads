@@ -17,11 +17,11 @@
 using namespace std;
 
 // Global constants
-const int MAX = 10;    // Maximum number of threads allowed
+int MAX = 10;    // Maximum number of threads allowed
 
 // Global variables
 sem_t semaphore;    // global semaphore, used for mutual exclusion
-pthread_t tid[MAX]; // array of thread identifiers
+pthread_t tid[256]; // array of thread identifiers
 
 int num1[256];
 int num2[256];
@@ -166,6 +166,8 @@ int main(int argc, char * argv[])
         //read in two big numbers
         l1 = readBigNumber(num1, 256, &file);
         l2 = readBigNumber(num2, 256, &file);
+
+        MAX = min(l1,l2);
 
         //display size of numbers
         cout << l1 << " size of num 1"<< endl;
