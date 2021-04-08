@@ -26,7 +26,7 @@ pthread_t tid[256]; // array of thread identifiers
 int num1[256];
 int num2[256];
 int product[512];
-int credit[256];  // Stores which thread calculated which digit
+int credit[512];  // Stores which thread calculated which digit
 
 int l2 = 0; // Length of number 2
 int l1 = 0; // Length of number 1
@@ -78,8 +78,6 @@ void multRange(int partial_sum[], int digit1, int id)
 {
     credit[digit1] = id;
 
-  
-
     // sem_wait(&semaphore);
     for (int digit2 = l1 - 1; digit2 >= 0; digit2--)
     {   
@@ -106,6 +104,8 @@ void *threadMultiply(void *arg)
     for(int i = 0; i < 512; i++){
         partial_sum[i] = 0;
     }
+    
+    
 
     // Provide an infinite loop for the thread to check if there is work
     while (true)
@@ -121,6 +121,7 @@ void *threadMultiply(void *arg)
             return partial_sum;
         }
         counter--; // Move to the next digit
+     
         sem_post(&semaphore);
         multRange(partial_sum, work_counter, id);
     }
@@ -167,11 +168,14 @@ int main(int argc, char * argv[])
         l1 = readBigNumber(num1, 256, &file);
         l2 = readBigNumber(num2, 256, &file);
 
-        MAX = min(l1,l2);
 
         //display size of numbers
         cout << l1 << " size of num 1"<< endl;
         cout << l2 << " size of num 2" << endl;
+
+
+        //made this new variable!!
+        int l3  = l1 + l2;
 
         counter = l2;
 
@@ -186,8 +190,14 @@ int main(int argc, char * argv[])
     
         sem_init(&semaphore, 0, 1);
 
+     
+
         for (i = 0; i < no_threads; i++)
             pthread_create(&tid[i], NULL, threadMultiply, (void *)i);
+                   
+                   
+        cout << l2 << " l2" << endl;
+    
 
         int* partial_sum;
         for (i = 0; i < no_threads; i++) {
@@ -196,7 +206,11 @@ int main(int argc, char * argv[])
         }
 
 
-        printBigNumber(product, l1 + l2,&out);
+      
+        cout << l3 << endl;
+
+        //modified this line to use l3
+        printBigNumber(product, l3, &out);
         //printBigNumber(credit, l1,&cout);
 
     }
