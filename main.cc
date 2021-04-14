@@ -26,7 +26,9 @@ pthread_t tid[256]; // array of thread identifiers
 int num1[256];
 int num2[256];
 int product[512];
-int credit[512];  // Stores which thread calculated which digit
+
+//change!! here from 256 to 512
+int credit[512];  // Stores which thread calculated which digit 
 
 int l2 = 0; // Length of number 2
 int l1 = 0; // Length of number 1
@@ -177,7 +179,9 @@ int main(int argc, char * argv[])
         //made this new variable!!
         int l3  = l1 + l2;
 
-        counter = l2;
+        counter = l2 - 1;
+
+        MAX = min(l2,l1);
 
         cout << no_threads << " no of threads" << endl;
 
